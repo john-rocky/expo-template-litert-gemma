@@ -1,0 +1,29 @@
+{
+  "name": "expo-template-litert-gemma",
+  "version": "0.1.5",
+  "description": "Expo template: a chat with Gemma 4 E2B running on the phone (react-native-litert-lm, LiteRT-LM).",
+  "license": "MIT",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "android:release": "expo run:android --variant release",
+    "ios:release": "expo run:ios --configuration Release --device",
+    "postinstall": "node scripts/add-consumer-rules.js"
+  },
+  "dependencies": {
+    "expo": "~58.0.16",
+    "expo-status-bar": "~58.0.3",
+    "markdown-to-jsx": "9.10.3",
+    "react": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-litert-lm": "0.8.1",
+    "react-native-nitro-modules": "0.37.1",
+    "react-native-safe-area-context": "~5.10.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
+  }
+}
