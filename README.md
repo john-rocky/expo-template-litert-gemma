@@ -15,9 +15,10 @@ picks the model file, backend and decoding setting that was fastest while still 
 npx create-expo-app@latest my-gemma-app --template https://github.com/john-rocky/expo-template-litert-gemma
 ```
 
-This GitHub URL form has not been run yet; the runs listed under "What was checked" used a tarball of this template
-instead. `--template` also takes such a tarball, made with `npm pack` in a clone of this repository (an absolute
-path, or a path that starts with `./`).
+This command was run on 2026-10-21, when this repository was at commit 98c7576; the app it created was built and run
+on a Pixel 8a (see "What was checked"). The other apps listed there as "template 0.1.x" were made from a tarball of
+this template instead. `--template` also takes such a tarball, made with `npm pack` in a clone of this repository (an
+absolute path, or a path that starts with `./`).
 
 Then make a release build and install it on a phone connected over USB:
 
@@ -84,6 +85,12 @@ Android 12 and newer, so older phones get one of the last two rows. iOS rows mat
 All on release builds with react-native-litert-lm 0.8.1. Below, "template 0.1.x" means a new app made from a tarball
 of that version of this template.
 
+- 2026-10-21, the command at the top (the GitHub URL, commit 98c7576), Pixel 8a: the app it made holds this
+  repository's files (`skills/` included, `.npmignore` left out; `app.json` and `package.json` carry the new app's
+  name and ids, as create-expo writes them) and the same app code as template 0.1.5. Its release build was made with
+  `npx expo prebuild --platform android` and Gradle's `assembleRelease`, and installed with `adb install`. The app
+  downloaded the model, loaded it on the form in the table, answered a suggested prompt with a reply drawn from its
+  Markdown, and on a later launch loaded the model from the phone without downloading it.
 - 2026-10-21, template 0.1.5, iPhone 18 Pro: the download, the load on the form in the table, three streamed
   replies with Reset before the third, a later launch that loads from the phone without downloading, replies drawn
   from their Markdown, and the screen after a failed download (HTTP 404, with Retry on it). The app was driven by
@@ -106,7 +113,11 @@ of that version of this template.
 Not checked:
 
 - `npx expo run:ios` itself, and signing with an App ID of your own (see below).
-- The GitHub URL form of the command at the top.
+- An iPhone build of the app that the command at the top makes: only its Android build was run. Its app code is the
+  same as template 0.1.5's, whose iPhone run is listed above.
+- `npx expo run:android --variant release` on the app that the command at the top makes: it was run on template
+  0.1.3, whose app code is the same; this app was built with `npx expo prebuild` and Gradle and installed with
+  `adb install`.
 - The memory refusal (`MEMORY_ESTIMATE_EXCEEDED`) and a GPU that fails to load: every phone loaded on the GPU, so the
   CPU fallback screens have not run on a phone.
 - The keyboard fix on the iPhone.
