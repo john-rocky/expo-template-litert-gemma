@@ -161,7 +161,10 @@ export function useGemmaChat(options: GemmaChatOptions = {}): GemmaChat {
       let shown = -1;
       log(`download start: ${f.file.url}`);
       try {
+        // A download that stopped partway (no connection, the app closed) continues from the bytes already on the
+        // phone when the server allows it (Hugging Face does); the file is kept only when its SHA-256 matches.
         const path = await ModelRegistry.resolveModel(f.file.url, {
+          sha256: f.file.sha256,
           onProgress: (p) => {
             if (!Number.isFinite(p)) return;
             const percent = Math.floor(Math.min(Math.max(p, 0), 1) * 100);
@@ -175,11 +178,22 @@ export function useGemmaChat(options: GemmaChatOptions = {}): GemmaChat {
       } catch (e) {
         const { code, message, brief } = errorOf(e);
         log(`download failed after ${Date.now() - t0} ms: ${code ?? 'no code'}: ${message}`);
+        if (/sha256 mismatch/i.test(message)) {
+          // The library deleted the file: Retry downloads it from the start.
+          fail({
+            title: 'The downloaded file was not the expected model',
+            detail: 'Its checksum did not match, so it was deleted. Tap Retry to download it again.',
+            code,
+            actions: ['retry'],
+          });
+          return;
+        }
         fail({
           title: 'The download failed',
           detail:
             `${brief}\n\nCheck the connection (Wi-Fi is best for ${formatBytes(f.file.bytes)}) and that the ` +
-            'phone has that much free storage, then tap Retry.',
+            'phone has that much free storage, then tap Retry. A download that stopped partway continues where it ' +
+            'stopped.',
           code,
           actions: ['retry'],
         });

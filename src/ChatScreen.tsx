@@ -2,7 +2,6 @@ import Markdown, { type NativeOptions } from 'markdown-to-jsx/native';
 import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   KeyboardAvoidingView,
   Pressable,
   ScrollView,
@@ -10,6 +9,7 @@ import {
   Text,
   TextInput,
   View,
+  type ScrollViewInstance,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatBytes } from './gemma/forms';
@@ -126,7 +126,7 @@ function Setup({ chat }: { chat: GemmaChat }) {
 
 function Conversation({ chat }: { chat: GemmaChat }) {
   const [draft, setDraft] = useState('');
-  const list = useRef<FlatList<ChatMessage>>(null);
+  const list = useRef<ScrollViewInstance>(null);
   const ready = chat.status.kind === 'ready';
   const submit = (text: string) => {
     if (!ready || !text.trim()) return;
@@ -135,18 +135,19 @@ function Conversation({ chat }: { chat: GemmaChat }) {
   };
   return (
     <>
-      <FlatList
+      {/* A ScrollView, not a FlatList: a chat holds a few messages (the context is 2,048 tokens), and its
+          scrollToEnd reaches the real end of the content. FlatList's stopped short, and the composer hid the
+          timing line under a finished reply and the bubble's lower edge. */}
+      <ScrollView
         ref={list}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         // a suggested prompt answers the first tap even while the keyboard is open (the default spends it on
         // closing the keyboard)
         keyboardShouldPersistTaps="handled"
-        data={chat.messages}
-        keyExtractor={(m) => String(m.id)}
-        renderItem={({ item }) => <Bubble message={item} />}
         onContentSizeChange={() => list.current?.scrollToEnd({ animated: true })}
-        ListEmptyComponent={
+      >
+        {chat.messages.length === 0 ? (
           <View style={styles.examples}>
             <Text style={styles.caption}>Try one:</Text>
             {EXAMPLES.map((example) => (
@@ -160,8 +161,10 @@ function Conversation({ chat }: { chat: GemmaChat }) {
               </Pressable>
             ))}
           </View>
-        }
-      />
+        ) : (
+          chat.messages.map((message) => <Bubble key={message.id} message={message} />)
+        )}
+      </ScrollView>
       <View style={styles.composer}>
         <TextInput
           style={styles.input}

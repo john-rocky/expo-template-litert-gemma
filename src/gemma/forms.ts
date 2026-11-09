@@ -6,8 +6,10 @@ import type { DeviceInfo } from 'react-native-litert-lm';
  * Every row below is the fastest form measured on that phone with
  * react-native-litert-lm 0.8.1 (LiteRT-LM 0.18.0) and the settings this app
  * loads with (text only, 2,048-token context, greedy decoding, thinking off),
- * answering a short chat prompt and a 1,106-token prompt correctly. Change the
- * settings, the library or the file and measure again on your phones.
+ * answering a short chat prompt and a 1,106-token prompt correctly. This app
+ * now uses react-native-litert-lm 0.8.2 (LiteRT-LM 0.18.1); the speeds were
+ * not measured again. Change the settings, the library or the file and measure
+ * again on your phones.
  */
 
 // Hugging Face repository and commit the files are pinned to (an immutable URL).
@@ -18,25 +20,40 @@ export type GemmaFile = {
   name: string;
   url: string;
   bytes: number;
+  /** The file's SHA-256 (its Hugging Face LFS oid): the download is checked against it before it is kept */
+  sha256: string;
   /** false: the file holds a GPU-only text decoder */
   runsOnCpu: boolean;
   /** true: the file carries a multi-token-prediction drafter (speculative decoding) */
   hasDrafter: boolean;
 };
 
-const file = (name: string, bytes: number, runsOnCpu: boolean, hasDrafter: boolean): GemmaFile => ({
+const file = (name: string, bytes: number, sha256: string, runsOnCpu: boolean, hasDrafter: boolean): GemmaFile => ({
   name,
   url: `https://huggingface.co/${REPO}/resolve/${REVISION}/${name}`,
   bytes,
+  sha256,
   runsOnCpu,
   hasDrafter,
 });
 
 export const FILES = {
   /** Text decoder for the GPU only: no image or audio encoder, no drafter. */
-  gpu: file('gemma-4-E2B-it-gpu.litertlm', 2_008_432_640, false, false),
+  gpu: file(
+    'gemma-4-E2B-it-gpu.litertlm',
+    2_008_432_640,
+    'a53a59001894c58e6bdb5b9b227709f91a2e3e556baa7d85acf9c55402ba5cf5',
+    false,
+    false,
+  ),
   /** The full bundle: CPU and GPU, image and audio encoders (not loaded here), the drafter. */
-  full: file('gemma-4-E2B-it.litertlm', 2_588_147_712, true, true),
+  full: file(
+    'gemma-4-E2B-it.litertlm',
+    2_588_147_712,
+    '181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c',
+    true,
+    true,
+  ),
 } as const;
 
 export type GemmaForm = {
