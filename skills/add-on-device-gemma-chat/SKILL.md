@@ -8,7 +8,7 @@ description: Add a chat with Google's Gemma 4 E2B that runs on the phone (no ser
 Checked with Expo 58.0.23 (React Native 0.88.1), react-native-litert-lm 0.8.2 (LiteRT-LM 0.18.1),
 react-native-nitro-modules 0.37.1 and markdown-to-jsx 9.10.3, in a release build of the template
 [expo-template-litert-gemma](https://github.com/john-rocky/expo-template-litert-gemma) 0.1.6 on an iPhone 18 Pro
-(2026-11-10; its README lists each run): a download stopped partway and continued, the SHA-256 check, load, streamed
+(2026-11-10; its docs/details.md lists each run): a download stopped partway and continued, the SHA-256 check, load, streamed
 replies drawn from their Markdown, Reset, a later launch that loads from the phone, and the screens for a file whose
 SHA-256 does not match and for a download URL that answers HTTP 404. On Android, only the start of the release build
 ran (Pixel 8a). With react-native-litert-lm 0.8.1, the template was checked on a Pixel 8a, a Galaxy S26 and an

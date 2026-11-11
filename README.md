@@ -1,70 +1,32 @@
 # Gemma 4 E2B chat on the phone (Expo template)
 
-Not an official Google, Expo or react-native-litert-lm template.
+An Expo app that downloads Google's Gemma 4 E2B once and chats with it on the phone. It needs no server or API key, and the model download is its only network use. It runs the model with [LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM) through [react-native-litert-lm](https://github.com/hung-yueh/react-native-litert-lm).
 
-An Expo app that downloads Google's Gemma 4 E2B once and chats with it on the phone: no server, no API key; your
-messages never leave the phone (the only network use is the one-time model download). It runs the model with
-[LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM) through
-[react-native-litert-lm](https://github.com/hung-yueh/react-native-litert-lm). On the three phones we measured, it
-picks the model file, backend and decoding setting that was fastest while still answering both a short chat and a
-1,106-token prompt.
+Use it as the starting point for your own app. This is not an official Google, Expo or react-native-litert-lm template.
 
 ## Start a new app
 
 ```sh
 npx create-expo-app@latest my-gemma-app --template expo-template-litert-gemma
-```
-
-This takes the template from npm. `--template` also takes this repository's URL
-(`https://github.com/john-rocky/expo-template-litert-gemma`).
-
-Then make a release build and install it on a phone connected over USB:
-
-```sh
 cd my-gemma-app
-npx expo run:android --variant release      # Android
-npx expo run:ios --configuration Release --device   # iPhone: first set your App ID, see below
+npx expo run:android --variant release
 ```
 
-- With more than one Android device connected, add `--device <serial>` (from `adb devices`); without it the command
-  installs on the first device in that list.
-- The command also starts the Metro dev server and keeps running after the app opens. A release build carries its
-  JavaScript and does not use Metro: stop it with Ctrl-C, or add `--no-bundler`.
+That builds the app and installs it on an Android phone connected over USB. It needs the [Android SDK](https://docs.expo.dev/get-started/set-up-your-environment/?platform=android&device=physical&mode=development-build&buildEnv=local#set-up-an-android-device-with-a-development-build), and Expo Go can't run it because the app has native code. The command keeps running after the app opens, so stop it with Ctrl-C. On a Mac, `npx create-expo-app` also downloads the LiteRT-LM iOS framework (about 124 MB) from GitHub. Set `SKIP_IOS_FRAMEWORK_DOWNLOAD=1` to skip it for Android-only work.
 
-In the app, tap **Download** (once: 2.0 or 2.6 GB depending on the phone, best on Wi-Fi), then a suggested prompt or
-your own message.
+In the app, tap **Download** (once, from Hugging Face: 2.0 or 2.6 GB depending on the phone, best on Wi-Fi), then a suggested prompt or your own message.
 
-## Existing app
-
-To add the same chat to an existing Expo or React Native app, a coding agent can follow
-[`skills/add-on-device-gemma-chat/SKILL.md`](skills/add-on-device-gemma-chat/SKILL.md); it holds everything the steps
-need.
+For an iPhone, see [your own App ID](#iphone-your-own-app-id). To add the same chat to an existing Expo or React Native app, give [`skills/add-on-device-gemma-chat/SKILL.md`](https://github.com/john-rocky/expo-template-litert-gemma/blob/main/skills/add-on-device-gemma-chat/SKILL.md) to a coding agent.
 
 ## What the app does
 
-- **Download** with progress. The file is checked against its SHA-256 before it is kept, and a download that stopped
-  partway (no connection, the app closed) continues where it stopped the next time you tap Download or Retry. The
-  file stays on the phone; later launches load it directly.
-- **Load** the model on the backend chosen for the phone, then **stream** each reply as it is generated. Replies are
-  Markdown (headings, bold, lists); [markdown-to-jsx](https://github.com/quantizor/markdown-to-jsx) draws them with
-  React Native views.
-- **Reset** clears the conversation (the context holds 2,048 tokens: prompts and replies).
-- When a step fails, the screen says what happened and what to do next:
-  - the download fails (no connection, not enough storage, a server error): **Retry**;
-  - the downloaded file does not match its SHA-256: the file is deleted, and **Retry** downloads it again;
-  - the library refuses to load because the phone lacks free memory (`MEMORY_ESTIMATE_EXCEEDED`): close other apps
-    and **Retry**, or **Load on the CPU** when the file can run there;
-  - the GPU cannot load the model: the app switches to the CPU, or offers to download the CPU version of the file
-    (the library also tries the CPU on its own before reporting a failure).
+The app checks the download against its SHA-256, and an interrupted download picks up where it stopped. Replies stream in and render as Markdown. A conversation holds 2,048 tokens, and **Reset** clears it. [The details](https://github.com/john-rocky/expo-template-litert-gemma/blob/main/docs/details.md) cover what the app does when a step fails, the device runs, what I have not checked and the iPhone entitlements.
 
 ## Which model file each phone gets
 
-[`src/gemma/forms.ts`](src/gemma/forms.ts) holds the table; each row has its measurement in a comment. All rows load
-text only, with a 2,048-token context, greedy decoding and thinking off, from
-[`litert-community/gemma-4-E2B-it-litert-lm`](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm)
-pinned to one commit.
+The app picks the model file and backend by phone. [`src/gemma/forms.ts`](src/gemma/forms.ts) holds the table, and you can add your own phones to `MEASURED`.
 
-| Phone | File | Backend | Decode speed measured (short chat) |
+| Phone | File | Backend | Decode speed (short chat) |
 | --- | --- | --- | --- |
 | Pixel 8a (Tensor G3) | `gemma-4-E2B-it-gpu.litertlm`, 2.0 GB | GPU | 21 tokens/s |
 | Galaxy S26 (Snapdragon SM8850) | `gemma-4-E2B-it.litertlm`, 2.6 GB | GPU, speculative decoding | 64 tokens/s |
@@ -72,131 +34,36 @@ pinned to one commit.
 | Other phones with a GPU driver | `gemma-4-E2B-it-gpu.litertlm`, 2.0 GB | GPU | not measured |
 | Phones without a GPU driver | `gemma-4-E2B-it.litertlm`, 2.6 GB | CPU | not measured |
 
-The table's speeds were measured on 2026-10-20 with a benchmark app on react-native-litert-lm 0.8.1 (LiteRT-LM
-0.18.0), with the load settings above. Release builds of this template (versions 0.1.1 to 0.1.5) on the same phones
-decoded replies of about 200 to 590 tokens at 18 (Pixel 8a), 60–67 (Galaxy S26) and 90–92 (iPhone 18 Pro)
-tokens/s. Version 0.1.6 uses react-native-litert-lm 0.8.2 (LiteRT-LM 0.18.1); the table was not measured again.
+The `-gpu` file only runs on the GPU. The other also runs on the CPU and has the drafter that speculative decoding needs. For each phone I measured, I picked the fastest setup that could also answer a long prompt of 1,106 tokens. I measured them on 2026-10-20 with a benchmark app on react-native-litert-lm 0.8.1 (LiteRT-LM 0.18.0). The template now uses 0.8.2 (LiteRT-LM 0.18.1), and this table was not measured again.
 
-Android rows match the phone's SoC (`getDeviceInfo().socModel`, Android's `Build.SOC_MODEL`). That field exists on
-Android 12 and newer, so older phones get one of the last two rows. iOS rows match the hardware model
-(`getDeviceInfo().model`). To add your phones, measure them with the settings above and add rows to `MEASURED`.
-
-## What was checked
-
-All on release builds. Below, "template 0.1.x" means a new app made from a tarball of that version of this template
-(`npm pack` in a clone; `--template` takes the tarball as an absolute path or a path that starts with `./`).
-
-Template 0.1.6 (react-native-litert-lm 0.8.2):
-
-- 2026-11-10, iPhone 18 Pro (Expo 58.0.23, React Native 0.88.1): the download, stopped at 30% by ending the app's
-  process, continued from there when Download was tapped again on the next launch (from byte 605,791,646 of
-  2,008,432,640), and its SHA-256 matched; the load on the form in the table; three streamed replies with Reset before
-  the third; a later launch that loads from the phone without downloading, with the end of the reply and the timing
-  line under it above the composer (in 0.1.5 the composer hid that line); replies drawn from their Markdown; the
-  screen for a downloaded file whose SHA-256 does not match (a small file from the same Hugging Face repository in
-  place of the model; the library deleted it) and the screen after a failed download (HTTP 404), each with Retry on
-  it. The app was driven by launch arguments through a small test harness in place of `index.ts`, not by taps.
-- 2026-11-10, Pixel 8a: only the start of the release build. It opened on the download screen with the form in the
-  table; nothing was downloaded (the phone was not on Wi-Fi).
-
-Earlier versions, with react-native-litert-lm 0.8.1:
-
-- 2026-10-22 and 2026-10-23, the npm command (`--template expo-template-litert-gemma`, version 0.1.5), Galaxy S26:
-  the app it made holds the package's files (`app.json` and `package.json` carry the new app's name and ids). Its
-  release build downloaded the model and loaded it; then, with the phone in airplane mode, it answered a typed
-  prompt.
-- 2026-10-21, the GitHub URL command (commit 98c7576), Pixel 8a: the app it made holds this
-  repository's files (`skills/` included, `.npmignore` left out; `app.json` and `package.json` carry the new app's
-  name and ids, as create-expo writes them) and the same app code as template 0.1.5. Its release build was made with
-  `npx expo prebuild --platform android` and Gradle's `assembleRelease`, and installed with `adb install`. The app
-  downloaded the model, loaded it on the form in the table, answered a suggested prompt with a reply drawn from its
-  Markdown, and on a later launch loaded the model from the phone without downloading it.
-- 2026-10-21, template 0.1.5, iPhone 18 Pro: the download, the load on the form in the table, three streamed
-  replies with Reset before the third, a later launch that loads from the phone without downloading, replies drawn
-  from their Markdown, and the screen after a failed download (HTTP 404, with Retry on it). The app was driven by
-  launch arguments through a small test harness in place of `index.ts`, not by taps.
-- 2026-10-21, template 0.1.3 (its app code is byte for byte the same as 0.1.5's), Galaxy S26: the download, the load
-  on the form in the table, a suggested prompt, a typed question, Reset, then one tap on a suggested prompt with the
-  keyboard still open, a later launch that loads from the phone, and replies drawn from their Markdown.
-- 2026-10-21, template 0.1.3, Pixel 8a: `npx expo run:android --variant release` built the release build (the
-  command's install step talked to a stand-in for `adb`, not to a phone), and the same command with
-  `--device <serial> --binary <that APK> --no-bundler` installed and opened it on the Pixel. The app downloaded the
-  model, loaded it and drew a reply from its Markdown.
-- 2026-10-21, the chat that a coding agent added to a new blank Expo app by following an earlier draft of
-  `skills/add-on-device-gemma-chat/SKILL.md` (before the edits in 0.1.5), Pixel 8a: the download, the load on the GPU
-  file, and a reply drawn from its Markdown.
-- 2026-10-20, template 0.1.2, Pixel 8a: Reset, then one tap on a suggested prompt with the keyboard open, and the
-  screen after a failed download (HTTP 404, with Retry on it; that screen's code is the same in 0.1.5).
-- 2026-10-20, template 0.1.1 (before Markdown rendering and the keyboard fix), Galaxy S26: the screen after a failed
-  download (HTTP 404, with Retry on it).
-
-Not checked:
-
-- `npx expo run:ios` itself, and signing with an App ID of your own (see below).
-- The npm command with version 0.1.6: 0.1.6 was not on npm yet, so this check used a tarball made with `npm pack`
-  from the same app files.
-- On Android with 0.1.6: the download, the SHA-256 check, a continued download, the replies, and whether the timing
-  line under a finished reply shows above the composer (only the start of the app ran, on the Pixel 8a).
-- A download that stopped because the connection dropped (the one checked was stopped by ending the app).
-- An iPhone build of an app made by the npm or GitHub URL command: only their Android builds were run.
-- `npx expo run:android --variant release` on an app made by the npm or GitHub URL command: it was run on template
-  0.1.3, whose app code is the same as 0.1.5's; those apps were built with `npx expo prebuild` and Gradle and
-  installed with `adb install`.
-- The memory refusal (`MEMORY_ESTIMATE_EXCEEDED`) and a GPU that fails to load: every phone loaded on the GPU, so the
-  CPU fallback screens have not run on a phone.
-- The keyboard fix on the iPhone.
-- Phones not in the table.
+The app downloads these files at a fixed Hub revision, so a later change on the Hub does not reach it.
 
 ## Requirements
 
-- Expo SDK 58 (React Native 0.88), react-native-litert-lm 0.8.2. After upgrading `expo`, run
-  `npx expo install --fix`: it installs the `react-native` version the new `expo` expects (`npx expo install --check`
-  lists the packages that differ). With Expo 58.0.23 and react-native 0.88.0, the iPhone app stopped at launch
-  (`Symbol not found: _OBJC_CLASS_$_RCTStatusBarAppearance`, a class added in react-native 0.88.1).
-- Android 8.0 (API 26) or newer, arm64. A GPU backend needs the vendor's OpenCL driver
-  (`getDeviceInfo().gpuAvailable`); without it the app uses the CPU.
-- iPhone: iOS 16.4 or newer (Expo SDK 58's deployment target), and a paid Apple Developer account (see below).
-- Free storage for the model file (2.0 or 2.6 GB) and free memory to load it; the library checks memory before it
-  loads and refuses rather than letting the system kill the app.
-- When `npx create-expo-app` installs the packages on a Mac, react-native-litert-lm's postinstall downloads the
-  LiteRT-LM iOS framework (about 124 MB) from GitHub, and the install fails if that download fails;
-  `SKIP_IOS_FRAMEWORK_DOWNLOAD=1` skips it for Android-only work.
+- Expo SDK 58 (React Native 0.88) and react-native-litert-lm 0.8.2. After upgrading `expo`, run `npx expo install --fix`.
+- Android 8.0 (API 26) or newer, arm64. A GPU backend needs the vendor's OpenCL driver, and without it the app uses the CPU.
+- iPhone: iOS 16.4 or newer and a paid Apple Developer account.
+- Free storage for the model file and free memory to load it. The library checks memory first and refuses to load if there isn't enough.
+- Publishing on Android: a local build signs with the debug key, so set up your own upload key first ([Expo docs](https://docs.expo.dev/app-signing/app-credentials/)).
 
 ## iPhone: your own App ID
 
-A model over about 2 GB needs the Extended Virtual Addressing entitlement; the template also turns on Increased
-Memory Limit, which raises the app's memory limit where the device allows. `app.json` turns both on through the
-react-native-litert-lm config plugin (`extendedVirtualAddressing`, `increasedMemoryLimit`).
-react-native-litert-lm's documentation says only a paid Apple Developer account can sign an app that declares them.
+react-native-litert-lm's documentation says a model over about 2 GB needs the Extended Virtual Addressing entitlement, so `app.json` turns it on, along with Increased Memory Limit. It also says only a paid Apple Developer account can sign an app with them.
 
-1. In `app.json`, set `expo.ios.bundleIdentifier` to an identifier of yours (the template's is `com.example.<app>`)
-   and add `"appleTeamId": "<your team ID>"` next to it.
-2. Run `npx expo run:ios --configuration Release --device`, which signs with your team automatically. If the build
-   reports that the provisioning profile lacks a capability, turn on the two entitlements
-   (`com.apple.developer.kernel.extended-virtual-addressing`, `com.apple.developer.kernel.increased-memory-limit`)
-   for the App ID on developer.apple.com and build again. (How the site names them was not checked.)
-
-Not verified: `npx expo run:ios` itself and these two steps with an App ID of your own. The iPhone build we checked
-was made with xcodebuild from the Xcode project that `npx expo prebuild` generates for this app, signed with an App
-ID and team borrowed from another project, with that project's AppDelegate/SceneDelegate (a workaround for the
-borrowed identifier), and driven by launch arguments rather than taps.
-
-Android needs no signing setup for a local release build: `npx expo run:android --variant release` signs with the
-debug key. Before publishing, set up your own upload key ([Expo docs](https://docs.expo.dev/app-signing/app-credentials/)).
+In `app.json`, set `expo.ios.bundleIdentifier` to an identifier of yours and add `"appleTeamId": "<your team ID>"` next to it. Then run `npx expo prebuild` and build the Xcode project it generates. My iPhone build came from that generated project, but it was signed with an App ID borrowed from another project, so I have not verified these two `app.json` settings. [The details](https://github.com/john-rocky/expo-template-litert-gemma/blob/main/docs/details.md#iphone-your-own-app-id) name the entitlements.
 
 ## Files
 
 | File | What it does |
 | --- | --- |
 | `App.tsx` | Wires the chat hook to the screen |
-| `src/ChatScreen.tsx` | Download, progress, errors, the conversation (replies drawn from Markdown), the composer |
-| `src/gemma/useGemmaChat.ts` | Picks the form, downloads, loads, streams replies, resets, falls back |
+| `src/ChatScreen.tsx` | Download, progress, errors, the conversation and the composer |
+| `src/gemma/useGemmaChat.ts` | The chat logic: which file to use, the download, loading and replies |
 | `src/gemma/forms.ts` | The model files (with their SHA-256) and the per-phone table |
-| `skills/add-on-device-gemma-chat/SKILL.md` | Instructions for coding agents adding the same chat to an existing app; an app created from the GitHub URL contains it too (delete it if you don't want it) |
+| `skills/add-on-device-gemma-chat/SKILL.md` | Steps for a coding agent adding the same chat to an existing app. It is in this repository but not in the npm package. |
 
 ## License
 
-The template: MIT ([LICENSE](LICENSE)). An app created from it starts with the same `LICENSE` file and `license`
-field in `package.json`; change them for your app, keeping the copyright notice with the template's code.
+The template: MIT ([LICENSE](LICENSE)). An app you create from it starts with that license. Change it for your app, keeping the copyright notice with the template's code.
 
 Gemma 4 E2B: Apache 2.0 ([model card](https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm)).

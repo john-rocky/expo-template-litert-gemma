@@ -1,7 +1,8 @@
 # What `npm pack` leaves out of the template package (create-expo-app packs a local template with npm pack).
 # Only that path reads this file: an app created from the GitHub URL gets the repository's files, skills/ included.
-# skills/ is for coding agents working on other apps, not part of a new app.
+# skills/ is for coding agents working on other apps, and docs/ is for readers of the repository. Neither is part of a new app.
 skills/
+docs/
 node_modules/
 *.tgz
 .DS_Store
