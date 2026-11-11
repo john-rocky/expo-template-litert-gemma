@@ -20,7 +20,7 @@ For an iPhone, see [your own App ID](#iphone-your-own-app-id). To add the same c
 
 ## What the app does
 
-The app checks the download against its SHA-256, and an interrupted download picks up where it stopped. Replies stream in and render as Markdown. A conversation holds 2,048 tokens, and **Reset** clears it. [The details](https://github.com/john-rocky/expo-template-litert-gemma/blob/main/docs/details.md) cover what the app does when a step fails, the device runs, what I have not checked and the iPhone entitlements.
+The app checks the download against its SHA-256, and an interrupted download picks up where it stopped. I tested both on an iPhone 18 Pro. On Android, the current version (0.1.6) has only been opened to its download screen, on a Pixel 8a. Replies stream in and render as Markdown. A conversation holds 2,048 tokens, and **Reset** clears it. [The details](https://github.com/john-rocky/expo-template-litert-gemma/blob/main/docs/details.md) cover what the app does when a step fails, the device runs, what I have not checked and the iPhone entitlements.
 
 ## Which model file each phone gets
 
@@ -28,7 +28,7 @@ The app picks the model file and backend by phone. [`src/gemma/forms.ts`](src/ge
 
 | Phone | File | Backend | Decode speed (short chat) |
 | --- | --- | --- | --- |
-| Pixel 8a (Tensor G3) | `gemma-4-E2B-it-gpu.litertlm`, 2.0 GB | GPU | 21 tokens/s |
+| Pixel 8a (Tensor G3) | `gemma-4-E2B-it-gpu.litertlm`, 2.0 GB | GPU | 18–21 tokens/s |
 | Galaxy S26 (Snapdragon SM8850) | `gemma-4-E2B-it.litertlm`, 2.6 GB | GPU, speculative decoding | 64 tokens/s |
 | iPhone 18 Pro | `gemma-4-E2B-it-gpu.litertlm`, 2.0 GB | GPU | 93 tokens/s |
 | Other phones with a GPU driver | `gemma-4-E2B-it-gpu.litertlm`, 2.0 GB | GPU | not measured |
@@ -48,7 +48,7 @@ The app downloads these files at a fixed Hub revision, so a later change on the 
 
 ## iPhone: your own App ID
 
-react-native-litert-lm's documentation says a model over about 2 GB needs the Extended Virtual Addressing entitlement, so `app.json` turns it on, along with Increased Memory Limit. It also says only a paid Apple Developer account can sign an app with them.
+react-native-litert-lm's [documentation](https://github.com/hung-yueh/react-native-litert-lm#ios-entitlements) says a model over about 2 GB needs the Extended Virtual Addressing entitlement, so `app.json` turns it on, along with Increased Memory Limit. It also says only a paid Apple Developer account can sign an app with them.
 
 In `app.json`, set `expo.ios.bundleIdentifier` to an identifier of yours and add `"appleTeamId": "<your team ID>"` next to it. Then run `npx expo prebuild` and build the Xcode project it generates. My iPhone build came from that generated project, but it was signed with an App ID borrowed from another project, so I have not verified these two `app.json` settings. [The details](https://github.com/john-rocky/expo-template-litert-gemma/blob/main/docs/details.md#iphone-your-own-app-id) name the entitlements.
 

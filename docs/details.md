@@ -51,7 +51,7 @@ pinned to one commit.
 
 | Phone | File | Backend | Decode speed measured (short chat) |
 | --- | --- | --- | --- |
-| Pixel 8a (Tensor G3) | `gemma-4-E2B-it-gpu.litertlm`, 2.0 GB | GPU | 21 tokens/s |
+| Pixel 8a (Tensor G3) | `gemma-4-E2B-it-gpu.litertlm`, 2.0 GB | GPU | 18–21 tokens/s |
 | Galaxy S26 (Snapdragon SM8850) | `gemma-4-E2B-it.litertlm`, 2.6 GB | GPU, speculative decoding | 64 tokens/s |
 | iPhone 18 Pro | `gemma-4-E2B-it-gpu.litertlm`, 2.0 GB | GPU | 93 tokens/s |
 | Other phones with a GPU driver | `gemma-4-E2B-it-gpu.litertlm`, 2.0 GB | GPU | not measured |
@@ -59,7 +59,7 @@ pinned to one commit.
 
 The table's speeds were measured on 2026-10-20 with a benchmark app on react-native-litert-lm 0.8.1 (LiteRT-LM
 0.18.0), with the load settings above. Release builds of this template (versions 0.1.1 to 0.1.5) on the same phones
-decoded replies of about 200 to 590 tokens at 18 (Pixel 8a), 60–67 (Galaxy S26) and 90–92 (iPhone 18 Pro)
+decoded replies of about 200 to 590 tokens at 18 (Pixel 8a), 59–67 (Galaxy S26) and 90–92 (iPhone 18 Pro)
 tokens/s. Version 0.1.6 uses react-native-litert-lm 0.8.2 (LiteRT-LM 0.18.1); the table was not measured again.
 
 Android rows match the phone's SoC (`getDeviceInfo().socModel`, Android's `Build.SOC_MODEL`). That field exists on
@@ -118,7 +118,7 @@ Earlier versions, with react-native-litert-lm 0.8.1:
 Not checked:
 
 - `npx expo run:ios` itself, and signing with an App ID of your own (see below).
-- The npm command with version 0.1.6: 0.1.6 was not on npm yet, so this check used a tarball made with `npm pack`
+- The npm command with version 0.1.6: the checks ran before 0.1.6 went to npm, so they used a tarball made with `npm pack`
   from the same app files.
 - On Android with 0.1.6: the download, the SHA-256 check, a continued download, the replies, and whether the timing
   line under a finished reply shows above the composer (only the start of the app ran, on the Pixel 8a).
